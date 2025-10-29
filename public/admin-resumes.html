@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Resumes - AI Resume Matcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .search-section {
+            margin: 30px 0;
+        }
+
+        .search-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .search-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #resumesList {
+            display: grid;
+            gap: 20px;
+        }
+
+        .resume-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .resume-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .resume-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .resume-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px 5%;
+            text-align: center;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div id="mainNav"></div>
+
+    <div class="container">
+        <h1>All Resumes</h1>
+        
+        <div class="search-section">
+            <input type="text" id="searchInput" placeholder="Search by name, email, or skills...">
+        </div>
+
+        <div id="resumesList"></div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 AI Resume Matcher. All rights reserved.</p>
+    </footer>
+
+    <script src="../js/navbar.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        
+        // Check if admin
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        if (userData.role !== 'admin') {
+            alert('Admin access only');
+            window.location.href = '/';
+        }
+
+        async function loadResumes() {
+            try {
+                const response = await fetch(`${API_URL}/resumes`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const resumes = await response.json();
+
+                const list = document.getElementById('resumesList');
+                list.innerHTML = '';
+
+                if (resumes.length === 0) {
+                    list.innerHTML = '<p>No resumes found</p>';
+                    return;
+                }
+
+                resumes.forEach(resume => {
+                    const card = document.createElement('div');
+                    card.className = 'resume-card';
+                    
+                    card.innerHTML = `
+                        <h3>${resume.candidateName}</h3>
+                        <p><strong>Email:</strong> ${resume.email || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${resume.phone || 'N/A'}</p>
+                        <p><strong>Location:</strong> ${resume.location || 'N/A'}</p>
+                        <p><strong>Skills:</strong> ${resume.skills?.slice(0, 10).join(', ') || 'N/A'}</p>
+                        <p><strong>Uploaded:</strong> ${new Date(resume.uploadDate).toLocaleDateString()}</p>
+                        <button onclick="viewResume('${resume._id}')" class="btn">View Full Resume</button>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading resumes:', error);
+            }
+        }
+
+        function viewResume(id) {
+            alert('View resume details - Feature coming soon!');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.resume-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+
+        loadResumes();
+    </script>
+</body>
+</html>
